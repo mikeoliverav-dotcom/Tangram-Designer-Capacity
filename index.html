@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tangram Design Labor Capacity Forecast</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #000;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: white;
+            padding: 24px 32px;
+            border-bottom: 4px solid #FFA300;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .header .sync-status {
+            font-size: 12px;
+            margin-top: 8px;
+            opacity: 0.8;
+        }
+
+        .tab-button {
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent !important;
+        }
+
+        .tab-button:hover {
+            color: white !important;
+        }
+
+        .tab-button.active {
+            color: white !important;
+            border-bottom-color: #FFA300 !important;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px 32px;
+            display: grid;
+            grid-template-columns: 1fr 2.5fr;
+            gap: 32px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #FFA300;
+        }
+
+        .team-section {
+            margin-bottom: 20px;
+        }
+
+        .team-section label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .team-section input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+        }
+
+        .team-member {
+            background: #f5f5f5;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .team-member-info {
+            flex: 1;
+        }
+
+        .team-member-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .team-member-capacity {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .team-member button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .team-member button:hover {
+            background: #c0392b;
+        }
+
+        button.primary {
+            background: #FFA300;
+            color: black;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+
+        button.primary:hover {
+            background: #e69400;
+        }
+
+        .forecast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .forecast-header h2 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .forecast-nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .forecast-nav button {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .forecast-nav button:hover {
+            background: #f5f5f5;
+        }
+
+        .forecast-nav button.this-week {
+            background: #FFA300;
+            color: black;
+            border: none;
+        }
+
+        .forecast-nav button.this-week:hover {
+            background: #e69400;
+        }
+
+        .forecast-dates {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .forecast-table {
+            width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        .forecast-table thead {
+            background: #f5f5f5;
+        }
+
+        .forecast-table th {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 2px solid #FFA300;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .forecast-table th:first-child {
+            text-align: left;
+        }
+
+        .forecast-table td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .forecast-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .forecast-percent {
+            font-weight: bold;
+            font-size: 20px;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .forecast-hours {
+            font-size: 11px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .forecast-table {
+                font-size: 10px;
+                overflow-x: auto;
+                display: block;
+            }
+
+            .forecast-table th {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .forecast-table td {
+                padding: 10px 6px;
+            }
+
+            .forecast-table td:first-child {
+                font-size: 12px;
+            }
+
+            .forecast-percent {
+                font-size: 16px;
+            }
+
+            .forecast-hours {
+                font-size: 9px;
+            }
+
+            .panel {
+                border: none;
+                padding: 20px 16px;
+                background: transparent;
+            }
+
+            .panel-title {
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+            }
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 3px;
+            border-left: 4px solid #FFA300;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .stat-detail {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .utilization-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .utilization-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .utilization-fill.healthy {
+            background: #27ae60;
+        }
+
+        .utilization-fill.busy {
+            background: #ffd700;
+        }
+
+        .utilization-fill.overallocated {
+            background: #e74c3c;
+        }
+
+        .project-item {
+            background: #f5f5f5;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            border-left: 3px solid #FFA300;
+        }
+
+        .project-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .project-meta {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .modal-field input[type="text"],
+        .modal-field input[type="number"],
+        .modal-field select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .modal-alloc-item {
+            margin-bottom: 12px;
+        }
+
+        .modal-alloc-item label {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .modal-alloc-inputs {
+            display: grid;
+            grid-template-columns: 1fr 50px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .modal-alloc-inputs input[type="range"] {
+            width: 100%;
+        }
+
+        .modal-alloc-inputs input[type="number"] {
+            padding: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-buttons button {
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-buttons button:first-child {
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        .modal-buttons button:last-child {
+            background: #FFA300;
+            border: none;
+            color: black;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .controls button {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .controls button:hover {
+            background: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .container .panel:first-child {
+                order: 2;
+            }
+            
+            .container .panel:last-child {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Design Labor Capacity Forecast</h1>
+        <p>Tangram Interiors • Team Edition (Real-Time)</p>
+        <div class="sync-status" id="syncStatus">Connecting...</div>
+        
+        <div style="margin-top: 16px; display: flex; gap: 12px; border-bottom: 2px solid rgba(255,163,0,0.3);">
+            <button onclick="switchView('forecast')" id="tab-forecast" class="tab-button active" style="padding: 8px 16px; background: none; color: white; font-weight: bold; cursor: pointer;">Forecast</button>
+            <button onclick="switchView('breakdown')" id="tab-breakdown" class="tab-button" style="padding: 8px 16px; background: none; color: rgba(255,255,255,0.6); font-weight: bold; cursor: pointer;">Weekly Breakdown</button>
+            <button onclick="switchView('atrisk')" id="tab-atrisk" class="tab-button" style="padding: 8px 16px; background: none; color: rgba(255,255,255,0.6); font-weight: bold; cursor: pointer;">At Risk</button>
+        </div>
+    </div>
+
+    <div class="container" id="forecastView">
+        <!-- Left Panel: Projects & Team -->
+        <div class="panel">
+            <div class="panel-title">Projects</div>
+            <button class="primary" onclick="showCreateProjectModal()">Create Project</button>
+            <div id="projectsList" style="margin-top: 16px;"></div>
+
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #ddd;">
+                <div class="panel-title">Team</div>
+                
+                <div class="team-section">
+                    <label>Designer Name</label>
+                    <input type="text" id="newDesignerName" placeholder="e.g., Mike Oliver">
+                </div>
+
+                <div class="team-section">
+                    <label>Weekly Hours</label>
+                    <input type="number" id="newDesignerCapacity" placeholder="e.g., 40" value="40">
+                </div>
+
+                <div class="team-section">
+                    <label>Available for Design (%)</label>
+                    <input type="number" id="newDesignerAvailability" placeholder="e.g., 75" value="70" min="0" max="100">
+                </div>
+
+                <button class="primary" onclick="addDesigner()">Add Designer</button>
+                <div id="teamList" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Forecast -->
+        <div class="panel">
+            <div class="forecast-header">
+                <h2>4-Week Forecast</h2>
+                <div class="forecast-nav">
+                    <button onclick="navigateWeeks(-1)">← Prev</button>
+                    <button onclick="goToThisWeek()" class="this-week">This Week</button>
+                    <span class="forecast-dates" id="forecastDates"></span>
+                    <button onclick="navigateWeeks(1)">Next →</button>
+                </div>
+            </div>
+
+            <div id="forecastTableContainer" style="overflow-x: auto; margin-bottom: 40px;"></div>
+
+            <div style="margin-top: 40px; padding-top: 24px; border-top: 2px solid #ddd;">
+                <div class="panel-title" style="font-size: 16px; margin-bottom: 16px;">Summary</div>
+                <div id="statsContainer"></div>
+            </div>
+
+            <div style="margin-top: 40px; padding-top: 24px; border-top: 2px solid #ddd;">
+                <div class="panel-title" style="border-bottom: 2px solid #FFA300; margin-bottom: 12px; font-size: 14px;">Project Queue</div>
+                <div id="projectQueueContainer" style="font-size: 12px;"></div>
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #ddd;">
+                <div class="panel-title" style="border-bottom: 2px solid #FFA300; margin-bottom: 12px; font-size: 14px;">Actions</div>
+                <div class="controls">
+                    <button onclick="exportData()">Export CSV</button>
+                    <button onclick="clearAllData()" style="color: #e74c3c;">Clear All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="breakdownView" style="display: none;">
+        <div class="panel" style="grid-column: 1 / -1;">
+            <div class="forecast-header">
+                <h2>Weekly Project Breakdown</h2>
+                <div class="forecast-nav">
+                    <button onclick="navigateWeeks(-1)">← Prev</button>
+                    <button onclick="goToThisWeek()" class="this-week">This Week</button>
+                    <span class="forecast-dates" id="breakdownDates"></span>
+                    <button onclick="navigateWeeks(1)">Next →</button>
+                </div>
+            </div>
+            
+            <div id="breakdownTableContainer" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <div class="container" id="atriskView" style="display: none;">
+        <div class="panel" style="grid-column: 1 / -1;">
+            <h2 style="margin-bottom: 24px; font-size: 20px;">At Risk Projects</h2>
+            <div id="atriskContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase config
+        const SUPABASE_URL = 'https://vgbzkjdtllbljgpplujy.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnYnpramR0bGxibGpncHBsdWp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzIzODEsImV4cCI6MjEwMjkwODM4MX0.kqvew_RzhvV9rBjiNi6bktDw2ZdW6XXl3Ymb97D-KwQ';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let designers = [];
+        let projects = [];
+        let currentWeekOffset = 0;
+        let isConnected = false;
+        let currentView = 'forecast';
+
+        async function init() {
+            await loadData();
+            setupRealtime();
+            render();
+        }
+
+        function updateSyncStatus(message, isOK = false) {
+            const el = document.getElementById('syncStatus');
+            el.textContent = message;
+            el.style.color = isOK ? '#27ae60' : '#999';
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('forecastView').style.display = view === 'forecast' ? '' : 'none';
+            document.getElementById('breakdownView').style.display = view === 'breakdown' ? '' : 'none';
+            document.getElementById('atriskView').style.display = view === 'atrisk' ? '' : 'none';
+            
+            document.getElementById('tab-forecast').classList.toggle('active', view === 'forecast');
+            document.getElementById('tab-breakdown').classList.toggle('active', view === 'breakdown');
+            document.getElementById('tab-atrisk').classList.toggle('active', view === 'atrisk');
+            
+            if (view === 'breakdown') {
+                renderWeeklyBreakdown();
+            } else if (view === 'atrisk') {
+                renderAtRisk();
+            }
+        }
+
+        async function loadData() {
+            try {
+                const [designersRes, projectsRes] = await Promise.all([
+                    supabase.from('designers').select('*'),
+                    supabase.from('projects').select(`
+                        *,
+                        project_allocations (
+                            designer_name,
+                            percentage
+                        )
+                    `)
+                ]);
+
+                if (designersRes.error) throw designersRes.error;
+                if (projectsRes.error) throw projectsRes.error;
+
+                designers = designersRes.data || [];
+                
+                projects = (projectsRes.data || []).map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    totalHours: p.total_hours,
+                    startWeekOffset: p.start_week_offset,
+                    priority: p.priority || 'Normal',
+                    deadlineWeekOffset: p.deadline_week_offset,
+                    allocations: (p.project_allocations || []).reduce((acc, pa) => {
+                        acc[pa.designer_name] = pa.percentage;
+                        return acc;
+                    }, {})
+                }));
+
+                isConnected = true;
+                updateSyncStatus('Connected • Real-time enabled', true);
+                render();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateSyncStatus('Error connecting to Supabase');
+            }
+        }
+
+        function setupRealtime() {
+            supabase
+                .channel('public:designers')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'designers' }, () => {
+                    loadData();
+                })
+                .subscribe();
+
+            supabase
+                .channel('public:projects')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+                    loadData();
+                })
+                .subscribe();
+
+            supabase
+                .channel('public:project_allocations')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'project_allocations' }, () => {
+                    loadData();
+                })
+                .subscribe();
+        }
+
+        async function addDesigner() {
+            const name = document.getElementById('newDesignerName').value.trim();
+            const capacity = parseInt(document.getElementById('newDesignerCapacity').value) || 40;
+            const availability = Math.max(0, Math.min(100, parseInt(document.getElementById('newDesignerAvailability').value) || 70));
+
+            if (!name) { alert('Please enter a designer name'); return; }
+            if (designers.some(d => d.name === name)) { alert('Designer already exists'); return; }
+
+            const { error } = await supabase.from('designers').insert([
+                { name, capacity, availability }
+            ]);
+
+            if (error) {
+                alert('Error adding designer: ' + error.message);
+                return;
+            }
+
+            document.getElementById('newDesignerName').value = '';
+            document.getElementById('newDesignerCapacity').value = '40';
+            document.getElementById('newDesignerAvailability').value = '70';
+            loadData();
+        }
+
+        async function removeDesigner(name) {
+            if (!confirm(`Remove ${name}?`)) return;
+            
+            const { error } = await supabase.from('designers').delete().eq('name', name);
+            if (error) alert('Error: ' + error.message);
+            else {
+                closeProjectModal();
+                loadData();
+            }
+        }
+
+        function showEditDesignerModal(name) {
+            const designer = designers.find(d => d.name === name);
+            if (!designer) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2>Edit Designer: ${designer.name}</h2>
+                    
+                    <div class="modal-field">
+                        <label>Weekly Hours</label>
+                        <input type="number" id="designer-capacity" value="${designer.capacity}">
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Available for Design (%)</label>
+                        <input type="number" id="designer-availability" value="${designer.availability}" min="0" max="100">
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button onclick="closeProjectModal()" style="border: 1px solid #ddd; background: white;">Cancel</button>
+                        <button onclick="saveEditDesigner('${designer.name}')" style="background: #FFA300; border: none; color: black;">Save Changes</button>
+                    </div>
+                    
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd;">
+                        <button onclick="removeDesigner('${designer.name}')" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 3px; cursor: pointer; font-weight: bold;">Delete Designer</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        async function saveEditDesigner(name) {
+            const capacity = parseInt(document.getElementById('designer-capacity').value) || 40;
+            const availability = Math.max(0, Math.min(100, parseInt(document.getElementById('designer-availability').value) || 70));
+
+            if (capacity <= 0) { alert('Please enter capacity > 0'); return; }
+
+            const { error } = await supabase
+                .from('designers')
+                .update({ capacity, availability })
+                .eq('name', name);
+
+            if (error) { alert('Error: ' + error.message); return; }
+
+            closeProjectModal();
+            loadData();
+        }
+
+        function getWeekOptions() {
+            const options = [];
+            for (let i = -4; i <= 16; i++) {
+                const range = getDateRange(i);
+                const label = i === 0 ? `Week of ${range.label} (This Week)` : `Week of ${range.label}`;
+                options.push({ value: i, label: label });
+            }
+            return options;
+        }
+
+        function showCreateProjectModal() {
+            const weekOptions = getWeekOptions();
+            let weekSelect = '<select id="modal-project-week">';
+            weekOptions.forEach(opt => {
+                weekSelect += `<option value="${opt.value}">${opt.label}</option>`;
+            });
+            weekSelect += '</select>';
+
+            let deadlineSelect = '<select id="modal-project-deadline"><option value="">Open-ended (No deadline)</option>';
+            weekOptions.forEach(opt => {
+                deadlineSelect += `<option value="${opt.value}">${opt.label}</option>`;
+            });
+            deadlineSelect += '</select>';
+
+            let allocHtml = '';
+            designers.forEach((designer, idx) => {
+                const isLast = idx === designers.length - 1;
+                allocHtml += `
+                    <div class="modal-alloc-item">
+                        <label>${designer.name}${isLast ? ' (absorbs remainder)' : ''}</label>
+                        <div class="modal-alloc-inputs">
+                            <input type="range" id="alloc-${designer.name}" min="0" max="100" value="0" ${isLast ? 'disabled' : ''}>
+                            <input type="number" id="alloc-num-${designer.name}" min="0" max="100" value="0" ${isLast ? 'readonly' : ''}>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2>Create Project</h2>
+                    
+                    <div class="modal-field">
+                        <label>Project Name</label>
+                        <input type="text" id="modal-project-name" placeholder="e.g., Goldman DDP">
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Total Design Hours</label>
+                        <input type="number" id="modal-project-hours" placeholder="e.g., 40" value="40">
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Priority</label>
+                        <select id="modal-project-priority">
+                            <option value="Normal">Normal</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Start Week</label>
+                        ${weekSelect}
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Deadline Week (Optional)</label>
+                        ${deadlineSelect}
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label style="margin-bottom: 12px;">Designer Allocation (% - Total must = 100%)</label>
+                        ${allocHtml}
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button onclick="closeProjectModal()">Cancel</button>
+                        <button onclick="saveProject()">Create Project</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add CSS for new select fields
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                .modal-field select {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    border-radius: 3px;
+                    font-size: 13px;
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            // Set up synced controls with last designer absorbing remainder
+            const lastDesignerIdx = designers.length - 1;
+            
+            designers.forEach((designer, idx) => {
+                const range = document.getElementById(`alloc-${designer.name}`);
+                const num = document.getElementById(`alloc-num-${designer.name}`);
+                
+                const updateRemaining = () => {
+                    // Calculate sum of all non-last designers
+                    let sum = 0;
+                    for (let i = 0; i < lastDesignerIdx; i++) {
+                        sum += parseInt(document.getElementById(`alloc-num-${designers[i].name}`).value) || 0;
+                    }
+                    
+                    // Last designer gets the remainder
+                    const remainder = Math.max(0, 100 - sum);
+                    const lastNum = document.getElementById(`alloc-num-${designers[lastDesignerIdx].name}`);
+                    const lastRange = document.getElementById(`alloc-${designers[lastDesignerIdx].name}`);
+                    
+                    lastNum.value = remainder;
+                    lastRange.value = remainder;
+                };
+                
+                if (idx !== lastDesignerIdx) {
+                    // Non-last designers: sync slider ↔ input, then update remainder
+                    if (range && num) {
+                        range.addEventListener('input', () => {
+                            num.value = range.value;
+                            updateRemaining();
+                        });
+                        num.addEventListener('input', () => {
+                            const val = Math.max(0, Math.min(100, parseInt(num.value) || 0));
+                            num.value = val;
+                            range.value = val;
+                            updateRemaining();
+                        });
+                    }
+                }
+            });
+        }
+
+        function closeProjectModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+        }
+
+        async function saveProject() {
+            const name = document.getElementById('modal-project-name').value.trim();
+            const hours = parseFloat(document.getElementById('modal-project-hours').value) || 0;
+            const startWeekOffset = parseInt(document.getElementById('modal-project-week').value);
+            const priority = document.getElementById('modal-project-priority').value;
+            const deadlineStr = document.getElementById('modal-project-deadline').value;
+            const deadlineWeekOffset = deadlineStr ? parseInt(deadlineStr) : null;
+
+            if (!name) { alert('Please enter a project name'); return; }
+            if (hours <= 0) { alert('Please enter hours > 0'); return; }
+            if (projects.some(p => p.name === name)) { alert('Project already exists'); return; }
+
+            const allocations = {};
+            designers.forEach(designer => {
+                const pct = parseInt(document.getElementById(`alloc-num-${designer.name}`).value) || 0;
+                if (pct > 0) {
+                    allocations[designer.name] = pct;
+                }
+            });
+
+            if (Object.keys(allocations).length === 0) { alert('Assign hours to at least one designer'); return; }
+
+            // Insert project
+            const { data: projData, error: projError } = await supabase
+                .from('projects')
+                .insert([{ name, total_hours: hours, start_week_offset: startWeekOffset, priority, deadline_week_offset: deadlineWeekOffset }])
+                .select();
+
+            if (projError) { alert('Error: ' + projError.message); return; }
+
+            const projectId = projData[0].id;
+
+            // Insert allocations
+            const allocRows = Object.entries(allocations).map(([designerName, percentage]) => ({
+                project_id: projectId,
+                designer_name: designerName,
+                percentage
+            }));
+
+            const { error: allocError } = await supabase
+                .from('project_allocations')
+                .insert(allocRows);
+
+            if (allocError) { alert('Error: ' + allocError.message); return; }
+
+            closeProjectModal();
+            loadData();
+        }
+
+        async function removeProject(name) {
+            if (!confirm(`Remove ${name}?`)) return;
+            
+            const proj = projects.find(p => p.name === name);
+            if (!proj) return;
+
+            const { error } = await supabase.from('projects').delete().eq('id', proj.id);
+            if (error) alert('Error: ' + error.message);
+            else {
+                closeProjectModal();
+                loadData();
+            }
+        }
+
+        function editProject(name) {
+            const project = projects.find(p => p.name === name);
+            if (!project) return;
+
+            const weekOptions = getWeekOptions();
+            let weekSelect = '<select id="modal-project-week">';
+            weekOptions.forEach(opt => {
+                const selected = opt.value === project.startWeekOffset ? 'selected' : '';
+                weekSelect += `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+            });
+            weekSelect += '</select>';
+
+            let deadlineSelect = '<select id="modal-project-deadline"><option value="">Open-ended (No deadline)</option>';
+            weekOptions.forEach(opt => {
+                const selected = opt.value === project.deadlineWeekOffset ? 'selected' : '';
+                deadlineSelect += `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+            });
+            deadlineSelect += '</select>';
+
+            let allocHtml = '';
+            designers.forEach((designer, idx) => {
+                const currentAlloc = project.allocations[designer.name] || 0;
+                const isLast = idx === designers.length - 1;
+                allocHtml += `
+                    <div class="modal-alloc-item">
+                        <label>${designer.name}${isLast ? ' (absorbs remainder)' : ''}</label>
+                        <div class="modal-alloc-inputs">
+                            <input type="range" id="alloc-${designer.name}" min="0" max="100" value="${currentAlloc}" ${isLast ? 'disabled' : ''}>
+                            <input type="number" id="alloc-num-${designer.name}" min="0" max="100" value="${currentAlloc}" ${isLast ? 'readonly' : ''}>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2>Edit Project: ${project.name}</h2>
+                    
+                    <div class="modal-field">
+                        <label>Total Design Hours</label>
+                        <input type="number" id="modal-project-hours" placeholder="e.g., 40" value="${project.totalHours}">
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Priority</label>
+                        <select id="modal-project-priority">
+                            <option value="Normal" ${project.priority === 'Normal' ? 'selected' : ''}>Normal</option>
+                            <option value="High" ${project.priority === 'High' ? 'selected' : ''}>High</option>
+                            <option value="Critical" ${project.priority === 'Critical' ? 'selected' : ''}>Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Start Week</label>
+                        ${weekSelect}
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label>Deadline Week (Optional)</label>
+                        ${deadlineSelect}
+                    </div>
+                    
+                    <div class="modal-field">
+                        <label style="margin-bottom: 12px;">Designer Allocation (% - Total must = 100%)</label>
+                        ${allocHtml}
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button onclick="closeProjectModal()" style="border: 1px solid #ddd; background: white;">Cancel</button>
+                        <button onclick="saveEditProject('${project.name}')" style="background: #FFA300; border: none; color: black;">Save Changes</button>
+                    </div>
+                    
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd;">
+                        <button onclick="removeProject('${project.name}')" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 3px; cursor: pointer; font-weight: bold;">Delete Project</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add CSS for new select fields if not already present
+            if (!document.querySelector('style[data-modal-select]')) {
+                const styleSheet = document.createElement('style');
+                styleSheet.setAttribute('data-modal-select', 'true');
+                styleSheet.textContent = `.modal-field select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 13px; }`;
+                document.head.appendChild(styleSheet);
+            }
+
+            // Set up synced controls with last designer absorbing remainder
+            const lastDesignerIdx = designers.length - 1;
+            
+            designers.forEach((designer, idx) => {
+                const range = document.getElementById(`alloc-${designer.name}`);
+                const num = document.getElementById(`alloc-num-${designer.name}`);
+                
+                const updateRemaining = () => {
+                    // Calculate sum of all non-last designers
+                    let sum = 0;
+                    for (let i = 0; i < lastDesignerIdx; i++) {
+                        sum += parseInt(document.getElementById(`alloc-num-${designers[i].name}`).value) || 0;
+                    }
+                    
+                    // Last designer gets the remainder
+                    const remainder = Math.max(0, 100 - sum);
+                    const lastNum = document.getElementById(`alloc-num-${designers[lastDesignerIdx].name}`);
+                    const lastRange = document.getElementById(`alloc-${designers[lastDesignerIdx].name}`);
+                    
+                    lastNum.value = remainder;
+                    lastRange.value = remainder;
+                };
+                
+                if (idx !== lastDesignerIdx) {
+                    // Non-last designers: sync slider ↔ input, then update remainder
+                    if (range && num) {
+                        range.addEventListener('input', () => {
+                            num.value = range.value;
+                            updateRemaining();
+                        });
+                        num.addEventListener('input', () => {
+                            const val = Math.max(0, Math.min(100, parseInt(num.value) || 0));
+                            num.value = val;
+                            range.value = val;
+                            updateRemaining();
+                        });
+                    }
+                }
+            });
+        }
+
+        async function saveEditProject(name) {
+            const project = projects.find(p => p.name === name);
+            if (!project) return;
+
+            const hours = parseFloat(document.getElementById('modal-project-hours').value) || 0;
+            const startWeekOffset = parseInt(document.getElementById('modal-project-week').value);
+            const priority = document.getElementById('modal-project-priority').value;
+            const deadlineStr = document.getElementById('modal-project-deadline').value;
+            const deadlineWeekOffset = deadlineStr ? parseInt(deadlineStr) : null;
+
+            if (hours <= 0) { alert('Please enter hours > 0'); return; }
+
+            const allocations = {};
+            designers.forEach(designer => {
+                const pct = parseInt(document.getElementById(`alloc-num-${designer.name}`).value) || 0;
+                if (pct > 0) {
+                    allocations[designer.name] = pct;
+                }
+            });
+
+            if (Object.keys(allocations).length === 0) { alert('Assign hours to at least one designer'); return; }
+
+            // Update project
+            const { error: projError } = await supabase
+                .from('projects')
+                .update({ total_hours: hours, start_week_offset: startWeekOffset, priority, deadline_week_offset: deadlineWeekOffset })
+                .eq('id', project.id);
+
+            if (projError) { alert('Error: ' + projError.message); return; }
+
+            // Delete old allocations
+            await supabase.from('project_allocations').delete().eq('project_id', project.id);
+
+            // Insert new allocations
+            const allocRows = Object.entries(allocations).map(([designerName, percentage]) => ({
+                project_id: project.id,
+                designer_name: designerName,
+                percentage
+            }));
+
+            const { error: allocError } = await supabase
+                .from('project_allocations')
+                .insert(allocRows);
+
+            if (allocError) { alert('Error: ' + allocError.message); return; }
+
+            closeProjectModal();
+            loadData();
+        }
+
+        function getWeekStartDate(offset) {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d.setDate(diff));
+            monday.setDate(monday.getDate() + offset * 7);
+            return monday;
+        }
+
+        function getDateRange(weekOffset) {
+            const start = getWeekStartDate(weekOffset);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 4);
+            return {
+                start: start,
+                end: end,
+                label: `${start.getMonth() + 1}/${start.getDate()}-${end.getMonth() + 1}/${end.getDate()}`
+            };
+        }
+
+        function getEffectiveCapacity(designer) {
+            return designer.capacity * designer.availability / 100;
+        }
+
+        function getTotalEffectiveCapacity() {
+            return designers.reduce((sum, d) => sum + getEffectiveCapacity(d), 0);
+        }
+
+        function getProjectPriority(priority) {
+            const priorities = { 'Critical': 0, 'High': 1, 'Normal': 2 };
+            return priorities[priority] ?? 2;
+        }
+
+        function detectAtRiskProjects() {
+            const atRisk = {
+                missingDeadline: [],
+                pushedWeeks: [],
+                overCommitted: []
+            };
+
+            // Simulate full queue to find actual completion weeks
+            const allProjectStartWeeks = projects.filter(p => Object.keys(p.allocations).length > 0).map(p => p.startWeekOffset);
+            const minStartWeek = allProjectStartWeeks.length > 0 ? Math.min(...allProjectStartWeeks, 0) : 0;
+            const maxEndWeek = Math.max(...projects.map(p => p.startWeekOffset + Math.ceil(p.totalHours / getTotalEffectiveCapacity())), 52);
+
+            // Track project completion weeks
+            const projectCompletionWeek = {};
+            designers.forEach(designer => {
+                const effectiveCap = getEffectiveCapacity(designer);
+                const allocatedProjects = projects
+                    .filter(p => p.allocations[designer.name])
+                    .map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        totalHours: p.totalHours,
+                        priority: getProjectPriority(p.priority),
+                        allocatedHours: p.totalHours * p.allocations[designer.name] / 100,
+                        startWeek: p.startWeekOffset,
+                        deadlineWeekOffset: p.deadlineWeekOffset
+                    }))
+                    .sort((a, b) => {
+                        if (a.priority !== b.priority) return a.priority - b.priority;
+                        if (a.deadlineWeekOffset && b.deadlineWeekOffset) return a.deadlineWeekOffset - b.deadlineWeekOffset;
+                        if (a.deadlineWeekOffset) return -1;
+                        if (b.deadlineWeekOffset) return 1;
+                        return a.startWeek - b.startWeek;
+                    });
+
+                const remaining = allocatedProjects.map(p => p.allocatedHours);
+                let queueIdx = 0;
+
+                for (let week = minStartWeek; week <= maxEndWeek; week++) {
+                    let weekUsed = 0;
+                    while (queueIdx < allocatedProjects.length && weekUsed < effectiveCap) {
+                        const proj = allocatedProjects[queueIdx];
+                        if (week >= proj.startWeek && remaining[queueIdx] > 0) {
+                            const canUse = Math.min(remaining[queueIdx], effectiveCap - weekUsed);
+                            remaining[queueIdx] -= canUse;
+                            weekUsed += canUse;
+
+                            if (remaining[queueIdx] <= 0.01) {
+                                projectCompletionWeek[proj.id] = week;
+                                queueIdx++;
+                            }
+                        } else if (week < proj.startWeek) {
+                            break;
+                        } else {
+                            queueIdx++;
+                        }
+                    }
+                }
+            });
+
+            // Check each project for at-risk conditions
+            projects.forEach(p => {
+                const completionWeek = projectCompletionWeek[p.id] ?? (p.startWeekOffset + Math.ceil(p.totalHours / getTotalEffectiveCapacity()));
+                const push = completionWeek - p.startWeekOffset;
+
+                // Missing deadline
+                if (p.deadlineWeekOffset !== null && completionWeek > p.deadlineWeekOffset) {
+                    atRisk.missingDeadline.push({
+                        name: p.name,
+                        priority: p.priority,
+                        deadlineWeek: p.deadlineWeekOffset,
+                        completionWeek: completionWeek,
+                        weeksLate: completionWeek - p.deadlineWeekOffset,
+                        deadlineLabel: getDateRange(p.deadlineWeekOffset).label
+                    });
+                }
+
+                // Pushed 2+ weeks
+                if (push >= 2) {
+                    atRisk.pushedWeeks.push({
+                        name: p.name,
+                        priority: p.priority,
+                        startWeek: p.startWeekOffset,
+                        actualStart: completionWeek - push,
+                        push: push,
+                        startLabel: getDateRange(p.startWeekOffset).label
+                    });
+                }
+            });
+
+            // Find over-committed weeks
+            for (let week = -4; week <= 20; week++) {
+                const consumption = calculateWeeklyConsumption(week);
+                const weekData = [0, 1, 2, 3];
+                weekData.forEach(idx => {
+                    const weekOffset = week + idx;
+                    let totalUtil = 0;
+                    designers.forEach(d => {
+                        const cap = getEffectiveCapacity(d);
+                        totalUtil += (consumption[d.name][idx] / cap) * 100;
+                    });
+                    const avgUtil = totalUtil / designers.length;
+                    if (avgUtil >= 100) {
+                        const existing = atRisk.overCommitted.find(w => w.weekOffset === weekOffset);
+                        if (!existing) {
+                            atRisk.overCommitted.push({
+                                weekOffset: weekOffset,
+                                avgUtilization: Math.round(avgUtil),
+                                label: getDateRange(weekOffset).label
+                            });
+                        }
+                    }
+                });
+            }
+
+            return atRisk;
+        }
+
+        function renderAtRisk() {
+            const atRisk = detectAtRiskProjects();
+            let html = '';
+
+            if (atRisk.missingDeadline.length > 0) {
+                html += '<div style="margin-bottom: 32px;"><h3 style="color: #e74c3c; margin-bottom: 12px; font-size: 16px;">⚠️ Missing Deadlines</h3>';
+                html += '<table style="width: 100%; border-collapse: collapse;"><tr style="background: #f5f5f5;"><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Project</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Priority</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Deadline</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Est. Completion</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Weeks Late</th></tr>';
+                atRisk.missingDeadline.sort((a, b) => b.weeksLate - a.weeksLate).forEach(p => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${p.name}</td><td style="padding: 8px;"><span style="background: ${p.priority === 'Critical' ? '#e74c3c' : p.priority === 'High' ? '#f39c12' : '#95a5a6'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">${p.priority}</span></td><td style="padding: 8px;">${p.deadlineLabel}</td><td style="padding: 8px;">${getDateRange(p.completionWeek).label}</td><td style="padding: 8px; font-weight: bold; color: #e74c3c;">+${p.weeksLate} wk</td></tr>`;
+                });
+                html += '</table></div>';
+            }
+
+            if (atRisk.pushedWeeks.length > 0) {
+                html += '<div style="margin-bottom: 32px;"><h3 style="color: #f39c12; margin-bottom: 12px; font-size: 16px;">↻ Pushed Projects (2+ Weeks)</h3>';
+                html += '<table style="width: 100%; border-collapse: collapse;"><tr style="background: #f5f5f5;"><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Project</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Priority</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Planned Start</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Weeks Pushed</th></tr>';
+                atRisk.pushedWeeks.sort((a, b) => b.push - a.push).forEach(p => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${p.name}</td><td style="padding: 8px;"><span style="background: ${p.priority === 'Critical' ? '#e74c3c' : p.priority === 'High' ? '#f39c12' : '#95a5a6'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">${p.priority}</span></td><td style="padding: 8px;">${p.startLabel}</td><td style="padding: 8px; font-weight: bold; color: #f39c12;">+${p.push} wks</td></tr>`;
+                });
+                html += '</table></div>';
+            }
+
+            if (atRisk.overCommitted.length > 0) {
+                html += '<div style="margin-bottom: 32px;"><h3 style="color: #e67e22; margin-bottom: 12px; font-size: 16px;">⚡ Over-Committed Weeks (≥100%)</h3>';
+                html += '<table style="width: 100%; border-collapse: collapse;"><tr style="background: #f5f5f5;"><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Week</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Avg. Utilization</th></tr>';
+                atRisk.overCommitted.sort((a, b) => b.avgUtilization - a.avgUtilization).forEach(w => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${w.label}</td><td style="padding: 8px;"><span style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 3px; font-weight: bold;">${w.avgUtilization}%</span></td></tr>`;
+                });
+                html += '</table></div>';
+            }
+
+            if (atRisk.missingDeadline.length === 0 && atRisk.pushedWeeks.length === 0 && atRisk.overCommitted.length === 0) {
+                html = '<p style="font-size: 18px; color: #27ae60; text-align: center; padding: 32px;">✓ No at-risk projects detected. Schedule is healthy!</p>';
+            }
+
+            document.getElementById('atriskContainer').innerHTML = html;
+        }
+
+        function calculateWeeklyConsumption(weekOffset) {
+            const consumption = {};
+            const weeks = [0, 1, 2, 3];
+            const displayWeeks = weeks.map(w => weekOffset + w);
+            
+            // Find min and max weeks we need to simulate
+            const allProjectStartWeeks = projects.filter(p => Object.keys(p.allocations).length > 0).map(p => p.startWeekOffset);
+            const minStartWeek = allProjectStartWeeks.length > 0 ? Math.min(...allProjectStartWeeks, 0) : 0;
+            const maxAbsoluteWeek = Math.max(...displayWeeks);
+            const minAbsoluteWeek = Math.min(...displayWeeks, minStartWeek);
+
+            designers.forEach(designer => {
+                consumption[designer.name] = [0, 0, 0, 0];
+                const effectiveCap = getEffectiveCapacity(designer);
+                const sortedProjects = projects
+                    .filter(p => p.allocations[designer.name])
+                    .map(p => ({
+                        name: p.name,
+                        allocatedHours: p.totalHours * p.allocations[designer.name] / 100,
+                        startWeek: p.startWeekOffset,
+                        priority: getProjectPriority(p.priority),
+                        deadlineWeek: p.deadlineWeekOffset
+                    }))
+                    .sort((a, b) => {
+                        if (a.priority !== b.priority) return a.priority - b.priority;
+                        if (a.deadlineWeek && b.deadlineWeek) return a.deadlineWeek - b.deadlineWeek;
+                        if (a.deadlineWeek) return -1;
+                        if (b.deadlineWeek) return 1;
+                        return a.startWeek - b.startWeek;
+                    });
+
+                // Track remaining hours for each project
+                const remaining = sortedProjects.map(p => p.allocatedHours);
+                let queueIdx = 0;
+
+                // Simulate from min week to max week
+                for (let absoluteWeek = minAbsoluteWeek; absoluteWeek <= maxAbsoluteWeek; absoluteWeek++) {
+                    let weekUsed = 0;
+
+                    while (queueIdx < sortedProjects.length && weekUsed < effectiveCap) {
+                        const proj = sortedProjects[queueIdx];
+
+                        if (absoluteWeek >= proj.startWeek && remaining[queueIdx] > 0) {
+                            const canUse = Math.min(remaining[queueIdx], effectiveCap - weekUsed);
+
+                            // If this is a display week, record the consumption
+                            const displayIdx = displayWeeks.indexOf(absoluteWeek);
+                            if (displayIdx !== -1) {
+                                consumption[designer.name][displayIdx] += canUse;
+                            }
+
+                            remaining[queueIdx] -= canUse;
+                            weekUsed += canUse;
+
+                            if (remaining[queueIdx] <= 0.01) {
+                                queueIdx++;
+                            }
+                        } else if (absoluteWeek < proj.startWeek) {
+                            break;
+                        } else {
+                            queueIdx++;
+                        }
+                    }
+                }
+            });
+
+            return consumption;
+        }
+
+        function navigateWeeks(direction) {
+            currentWeekOffset += direction;
+            if (currentView === 'forecast') {
+                render();
+            } else {
+                renderWeeklyBreakdown();
+            }
+        }
+
+        function goToThisWeek() {
+            currentWeekOffset = 0;
+            if (currentView === 'forecast') {
+                render();
+            } else {
+                renderWeeklyBreakdown();
+            }
+        }
+
+        function render() {
+            renderTeam();
+            renderProjects();
+            if (currentView === 'forecast') {
+                renderForecast();
+                renderStats();
+                renderProjectQueue();
+            }
+        }
+
+        function renderWeeklyBreakdown() {
+            const dateRange = getDateRange(currentWeekOffset);
+            document.getElementById('breakdownDates').textContent = dateRange.label;
+
+            const weeks = [0, 1, 2, 3];
+            const displayWeeks = weeks.map(w => currentWeekOffset + w);
+            
+            // Find min and max weeks we need to simulate
+            const allProjectStartWeeks = projects.filter(p => Object.keys(p.allocations).length > 0).map(p => p.startWeekOffset);
+            const minStartWeek = allProjectStartWeeks.length > 0 ? Math.min(...allProjectStartWeeks, 0) : 0;
+            const maxAbsoluteWeek = Math.max(...displayWeeks);
+            const minAbsoluteWeek = Math.min(...displayWeeks, minStartWeek);
+
+            let tableHTML = '<table class="forecast-table"><thead><tr><th>Designer</th>';
+            
+            weeks.forEach(i => {
+                const range = getDateRange(currentWeekOffset + i);
+                tableHTML += `<th>${range.label}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+
+            designers.forEach(designer => {
+                tableHTML += '<tr>';
+                const effectiveCap = getEffectiveCapacity(designer);
+                
+                // Designer name cell (no color coding)
+                tableHTML += `<td style="text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;">${designer.name}</td>`;
+                
+                // Track what projects are being worked on each week
+                const weekProjects = [{}, {}, {}, {}]; // projects for each display week
+                
+                const sortedProjects = projects
+                    .filter(p => p.allocations[designer.name])
+                    .map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        allocatedHours: p.totalHours * p.allocations[designer.name] / 100,
+                        startWeek: p.startWeekOffset
+                    }))
+                    .sort((a, b) => a.startWeek - b.startWeek);
+
+                // Track remaining hours for each project
+                const remaining = sortedProjects.map(p => p.allocatedHours);
+                let queueIdx = 0;
+
+                // Simulate from min week to max week
+                for (let absoluteWeek = minAbsoluteWeek; absoluteWeek <= maxAbsoluteWeek; absoluteWeek++) {
+                    let weekUsed = 0;
+                    const displayIdx = displayWeeks.indexOf(absoluteWeek);
+
+                    while (queueIdx < sortedProjects.length && weekUsed < effectiveCap) {
+                        const proj = sortedProjects[queueIdx];
+
+                        if (absoluteWeek >= proj.startWeek && remaining[queueIdx] > 0) {
+                            const canUse = Math.min(remaining[queueIdx], effectiveCap - weekUsed);
+
+                            // If this is a display week, record the project and hours
+                            if (displayIdx !== -1) {
+                                if (!weekProjects[displayIdx][proj.name]) {
+                                    weekProjects[displayIdx][proj.name] = 0;
+                                }
+                                weekProjects[displayIdx][proj.name] += canUse;
+                            }
+
+                            remaining[queueIdx] -= canUse;
+                            weekUsed += canUse;
+
+                            if (remaining[queueIdx] <= 0.01) {
+                                queueIdx++;
+                            }
+                        } else if (absoluteWeek < proj.startWeek) {
+                            break;
+                        } else {
+                            queueIdx++;
+                        }
+                    }
+                }
+
+                // Render cells for each week
+                weeks.forEach((weekIdx) => {
+                    const projects_in_week = weekProjects[weekIdx];
+                    const weekTotal = Object.values(projects_in_week).reduce((sum, h) => sum + h, 0);
+                    const util = (weekTotal / effectiveCap) * 100;
+                    
+                    let bgColor = '#e8f5e9';
+                    if (util >= 100) bgColor = '#ffebee';
+                    else if (util >= 75) bgColor = '#fffacd';
+                    
+                    let cellHTML = '';
+                    if (weekTotal === 0) {
+                        cellHTML = '<span style="color: #999; font-size: 14px;">—</span>';
+                    } else {
+                        const projectEntries = Object.entries(projects_in_week)
+                            .map(([name, hours]) => `<div style="margin-bottom: 6px;"><strong style="font-size: 14px;">${name}</strong><br><span style="font-size: 12px; color: #666;">${hours.toFixed(1)}h</span></div>`);
+                        cellHTML = projectEntries.join('');
+                    }
+                    
+                    tableHTML += `<td style="text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid #eee; background: ${bgColor};"><div style="margin-bottom: 8px; font-weight: bold; font-size: 18px;">${util.toFixed(0)}%</div>${cellHTML}</td>`;
+                });
+
+                tableHTML += '</tr>';
+            });
+
+            tableHTML += '</tbody></table>';
+            document.getElementById('breakdownTableContainer').innerHTML = tableHTML;
+        }
+
+        function renderTeam() {
+            const container = document.getElementById('teamList');
+            if (designers.length === 0) {
+                container.innerHTML = '<p style="color: #999; font-size: 12px;">No designers added yet</p>';
+                return;
+            }
+
+            container.innerHTML = designers.map(designer => {
+                const availableHours = (designer.capacity * designer.availability / 100).toFixed(1);
+                return `
+                    <div class="team-member" onclick="showEditDesignerModal('${designer.name}')" style="cursor: pointer; padding: 12px;">
+                        <div class="team-member-info">
+                            <div class="team-member-name">${designer.name}</div>
+                            <div class="team-member-capacity">${availableHours}h available / ${designer.capacity}h week (${designer.availability}%)</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('projectsList');
+            if (projects.length === 0) {
+                container.innerHTML = '<p style="color: #999; font-size: 12px;">No projects created yet</p>';
+                return;
+            }
+
+            const sorted = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+            container.innerHTML = sorted.map(project => {
+                const designers_str = Object.keys(project.allocations).join(', ');
+                const weekRange = getDateRange(project.startWeekOffset);
+                return `
+                    <div class="team-member" onclick="editProject('${project.name}')" style="cursor: pointer; padding: 12px;">
+                        <div class="team-member-info">
+                            <div class="team-member-name">${project.name}</div>
+                            <div class="team-member-capacity">${project.totalHours}h • Week of ${weekRange.label} • ${designers_str}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderForecast() {
+            const dateRange = getDateRange(currentWeekOffset);
+            document.getElementById('forecastDates').textContent = dateRange.label;
+
+            const consumption = calculateWeeklyConsumption(currentWeekOffset);
+            const totalCapacity = getTotalEffectiveCapacity();
+
+            let tableHTML = '<table class="forecast-table"><thead><tr><th>Designer</th>';
+            for (let i = 0; i < 4; i++) {
+                const range = getDateRange(currentWeekOffset + i);
+                tableHTML += `<th>${range.label}</th>`;
+            }
+            tableHTML += '</tr></thead><tbody>';
+
+            designers.forEach(designer => {
+                const weeks = consumption[designer.name];
+                const effectiveCap = getEffectiveCapacity(designer);
+                tableHTML += '<tr><td>' + designer.name + '</td>';
+
+                weeks.forEach(hours => {
+                    const util = (hours / effectiveCap) * 100;
+                    let bgColor = '#e8f5e9';
+                    if (util >= 100) bgColor = '#ffebee';
+                    else if (util >= 75) bgColor = '#fffacd';
+
+                    tableHTML += `<td style="background: ${bgColor};">
+                        <div class="forecast-percent">${util.toFixed(0)}%</div>
+                        <div class="forecast-hours">${hours.toFixed(1)}h</div>
+                    </td>`;
+                });
+
+                tableHTML += '</tr>';
+            });
+
+            tableHTML += '</tbody></table>';
+            document.getElementById('forecastTableContainer').innerHTML = tableHTML;
+        }
+
+        function renderStats() {
+            const container = document.getElementById('statsContainer');
+            const consumption = calculateWeeklyConsumption(currentWeekOffset);
+            const totalCapacity = getTotalEffectiveCapacity();
+            const weeklyTotals = Object.values(consumption).reduce((acc, weeks) => {
+                weeks.forEach((h, i) => { acc[i] = (acc[i] || 0) + h; });
+                return acc;
+            }, [0, 0, 0, 0]);
+
+            const avgWeekly = weeklyTotals.reduce((a, b) => a + b, 0) / 4;
+            const maxWeekly = Math.max(...weeklyTotals);
+            const utilPercent = (avgWeekly / totalCapacity) * 100;
+
+            let utilizationClass = 'healthy';
+            if (utilPercent >= 100) utilizationClass = 'overallocated';
+            else if (utilPercent >= 75) utilizationClass = 'busy';
+
+            const teamCapacityStr = `${designers.length} designers, ${totalCapacity.toFixed(1)}h/week`;
+
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Team Capacity</div>
+                    <div class="stat-value">${teamCapacityStr}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Average Weekly Load</div>
+                    <div class="stat-value">${avgWeekly.toFixed(1)}h</div>
+                    <div class="stat-detail">${utilPercent.toFixed(0)}% utilization</div>
+                    <div class="utilization-bar">
+                        <div class="utilization-fill ${utilizationClass}" style="width: ${Math.min(utilPercent, 120)}%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Peak Week Load</div>
+                    <div class="stat-value">${maxWeekly.toFixed(1)}h</div>
+                    <div class="stat-detail">${((maxWeekly / totalCapacity) * 100).toFixed(0)}% utilization</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Available Capacity</div>
+                    <div class="stat-value">${Math.max(0, totalCapacity - avgWeekly).toFixed(1)}h/week</div>
+                    <div class="stat-detail">Average</div>
+                </div>
+            `;
+        }
+
+        function renderProjectQueue() {
+            const container = document.getElementById('projectQueueContainer');
+            const sorted = [...projects].sort((a, b) => a.startWeekOffset - b.startWeekOffset);
+
+            if (sorted.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No projects</p>';
+                return;
+            }
+
+            container.innerHTML = sorted.map(project => {
+                const allocStr = Object.entries(project.allocations).map(([name, pct]) => `${name} ${pct}%`).join(', ');
+                const weekRange = getDateRange(project.startWeekOffset);
+                return `
+                    <div class="project-item">
+                        <div class="project-name">${project.name}</div>
+                        <div class="project-meta">${project.totalHours}h • Week of ${weekRange.label} • ${allocStr}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportData() {
+            const consumption = calculateWeeklyConsumption(currentWeekOffset);
+            let csv = 'Designer,W1 (%),W2 (%),W3 (%),W4 (%)\n';
+
+            designers.forEach(designer => {
+                const weeks = consumption[designer.name];
+                const effectiveCap = getEffectiveCapacity(designer);
+                const utils = weeks.map(h => ((h / effectiveCap) * 100).toFixed(0)).join(',');
+                csv += `${designer.name},${utils}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `forecast-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function clearAllData() {
+            if (!confirm('Clear ALL data? This cannot be undone.')) return;
+
+            await Promise.all([
+                supabase.from('project_allocations').delete().neq('id', -1),
+                supabase.from('projects').delete().neq('id', -1),
+                supabase.from('designers').delete().neq('id', -1)
+            ]);
+
+            loadData();
+        }
+
+        init();
+    </script>
+</body>
+</html>
